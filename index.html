@@ -3,80 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Admin Pro</title>
+    <title>Discord Admin - Direct Connect</title>
     <style>
-        :root { --bg: #313338; --side: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        :root { --bg: #313338; --dark: #1e1f22; --blurple: #5865f2; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
-
-        /* Layout */
-        .srv-col { width: 72px; background: var(--dark); display: flex; flex-direction: column; align-items: center; padding-top: 12px; }
-        .dm-col { width: 240px; background: var(--side); display: flex; flex-direction: column; }
-        .chat-col { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
         
-        /* UI Elements */
-        .icon { width: 48px; height: 48px; border-radius: 50%; background: #313338; margin-bottom: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .icon:hover { border-radius: 15px; background: var(--blurple); }
-        .item { padding: 10px; margin: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .item:hover { background: #35373c; }
-
-        /* Login Screen */
+        /* Professional Login UI */
         #login-screen { position: fixed; inset: 0; background: var(--blurple); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .login-box { background: var(--bg); padding: 40px; border-radius: 8px; width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-        input { width: 100%; padding: 12px; background: var(--dark); border: none; border-radius: 4px; color: white; margin: 15px 0; outline: none; box-sizing: border-box;}
+        .login-box { background: var(--bg); padding: 40px; border-radius: 8px; width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 12px; background: var(--dark); border: none; border-radius: 4px; color: white; margin: 15px 0; box-sizing: border-box; outline: none; }
         button { width: 100%; padding: 12px; background: var(--blurple); border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; }
-
-        /* Chat System */
-        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { background: #383a40; padding: 10px; border-radius: 8px; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        .input-area { padding: 20px; background: var(--bg); }
-        .main-input { width: 100%; padding: 14px; background: #383a40; border-radius: 8px; border: none; color: white; outline: none; }
         
-        .footer { background: #232428; padding: 10px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
-        .badge { background: #ed4245; font-size: 9px; padding: 2px 4px; border-radius: 3px; font-weight: bold; margin-left: 5px; }
+        /* Main UI */
+        .sidebar { width: 240px; background: #2b2d31; display: flex; flex-direction: column; }
+        .content { flex: 1; display: flex; flex-direction: column; }
+        #chat { flex: 1; padding: 20px; overflow-y: auto; background: var(--bg); }
+        .input-area { padding: 20px; }
+        .msg-input { width: 100%; padding: 14px; background: #383a40; border-radius: 8px; border: none; color: white; outline: none; }
+        .user-tag { background: #232428; padding: 10px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .badge { background: #ed4245; font-size: 9px; padding: 2px 4px; border-radius: 3px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-box">
-            <h2 style="margin-top:0">Bridge Connection</h2>
-            <p style="color: #b5bac1; font-size: 14px;">Enter your Bot Token to sync with Discord.</p>
-            <input type="password" id="tokenField" placeholder="Bot Token">
-            <button onclick="startBridge()">Connect Now</button>
-            <p id="debug-log" style="font-size: 11px; margin-top: 15px; color: #f2d458;"></p>
+            <h2>Bridge Login</h2>
+            <p style="color:#b5bac1; font-size:14px;">Direct WebSocket Connection (No Proxy Required)</p>
+            <input type="password" id="botToken" placeholder="Paste Bot Token">
+            <button onclick="connectDirect()">Connect</button>
+            <p id="log" style="font-size: 11px; margin-top: 15px; color: #f2d458;"></p>
         </div>
     </div>
 
-    <div class="srv-col">
-        <div class="icon" style="background: var(--blurple); border-radius: 15px;">D</div>
-    </div>
-
-    <div class="dm-col">
-        <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid #1f2023;">Direct Messages</div>
-        <div style="flex: 1; padding-top: 10px;">
-            <div class="item" onclick="createNewCommand()">➕ Create Command</div>
+    <div class="sidebar">
+        <div style="padding:15px; font-weight:bold; border-bottom:1px solid #1f2023;">Admin Panel</div>
+        <div style="flex:1; padding:10px;">
+            <div style="padding:10px; cursor:pointer;" onclick="createCmd()">➕ Create Command</div>
         </div>
-        <div class="footer" id="user-info"></div>
+        <div class="user-tag" id="profile"></div>
     </div>
 
-    <div class="chat-col">
+    <div class="content">
         <div id="chat"></div>
         <div class="input-area">
-            <input type="text" class="main-input" id="messageInp" placeholder="Type a message or command..." onkeydown="handleKey(event)">
+            <input type="text" id="msgInp" class="msg-input" placeholder="Message Discord..." onkeydown="handleChat(event)">
         </div>
     </div>
 
     <script>
+        let ws;
         let TOKEN = "";
-        let botID = "";
+        const statusLog = document.getElementById('log');
 
-        function log(msg) { document.getElementById('debug-log').innerText = msg; }
+        function connectDirect() {
+            TOKEN = document.getElementById('botToken').value;
+            if(!TOKEN) return alert("Please enter a token!");
 
-        async function startBridge() {
-            TOKEN = document.getElementById('tokenField').value;
-            if(!TOKEN) return alert("Enter a token!");
-            
-            log("Opening WebSocket...");
-            const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+            statusLog.innerText = "Connecting to Discord Gateway...";
+            ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+
+            ws.onmessage = (e)
