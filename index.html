@@ -5,124 +5,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discord Admin Client</title>
     <style>
-        /* --- ALL CSS (THE DESIGN) --- */
-        :root { --bg: #313338; --sidebar: #2b2d31; --servers: #1e1f22; --blurple: #5865f2; }
-        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; overflow: hidden; height: 100vh; }
+        :root { --bg: #313338; --side: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
-        
-        /* Animations */
-        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .fade-in { animation: fadeIn 0.5s ease; }
-        .slide-in { animation: slideIn 0.5s ease-out; }
 
-        /* Login Layout */
-        .login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--blurple); }
-        .login-box { background: var(--bg); padding: 40px; border-radius: 8px; width: 400px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
-        input { width: 100%; padding: 12px; background: #1e1f22; border: 1px solid #111214; border-radius: 4px; color: white; margin: 15px 0; outline: none; }
-        button { width: 100%; padding: 12px; background: var(--blurple); border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #4752c4; }
-
-        /* App Layout */
-        #main-app { display: flex; height: 100vh; }
-        .srv-side { width: 72px; background: var(--servers); display: flex; flex-direction: column; align-items: center; padding-top: 15px; }
-        .srv-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--bg); margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .dm-side { width: 240px; background: var(--sidebar); display: flex; flex-direction: column; }
-        .chat-main { flex: 1; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        /* Sidebar & Layout */
+        .srv-col { width: 72px; background: var(--dark); display: flex; flex-direction: column; align-items: center; padding-top: 12px; }
+        .dm-col { width: 240px; background: var(--side); display: flex; flex-direction: column; }
+        .chat-col { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
         
-        .user-footer { margin-top: auto; background: #232428; padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .admin-badge { background: #ed4245; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; background: #5865f2; }
+        /* Icons & Items */
+        .icon { width: 48px; height: 48px; border-radius: 50%; background: #313338; margin-bottom: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .icon:hover { border-radius: 15px; background: var(--blurple); }
+        .channel-item { padding: 8px 12px; margin: 2px 8px; border-radius: 4px; cursor: pointer; }
+        .channel-item:hover { background: #35373c; }
+
+        /* Login Overlay */
+        #login-overlay { position: fixed; inset: 0; background: var(--blurple); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--bg); padding: 40px; border-radius: 8px; width: 400px; text-align: center; animation: slideUp 0.5s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        input { width: 100%; padding: 12px; background: var(--dark); border: none; border-radius: 4px; color: white; margin: 15px 0; outline: none; }
+        button { width: 100%; padding: 12px; background: var(--blurple); border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; }
+
+        /* Chat */
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { background: #383a40; padding: 10px; border-radius: 8px; max-width: 80%; }
+        .chat-input-area { padding: 20px; }
+        .chat-input { width: 100%; padding: 12px; background: #383a40; border-radius: 8px; border: none; color: white; outline: none; }
+        
+        .user-tag { background: var(--dark); padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #232428; }
+        .badge { background: #ed4245; font-size: 10px; padding: 2px 4px; border-radius: 3px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="login-page" class="login-screen">
-        <div class="login-box slide-in">
-            <img src="https://raw.githubusercontent.com/pignataro/discord-logo-svg/master/discord-logo-blue.svg" width="80">
+    <div id="login-overlay">
+        <div class="login-box">
             <h2>Welcome back!</h2>
-            <p style="color:#b5bac1">Log in with your Bot Token</p>
-            <input type="password" id="tkInput" placeholder="Enter Token">
-            <button onclick="handleLogin()">Log In</button>
-            <div id="load-msg" class="hidden" style="margin-top:15px;">Connecting to Discord...</div>
+            <input type="password" id="tokenInp" placeholder="Enter Bot Token">
+            <button onclick="initBot()">Log In</button>
         </div>
     </div>
 
-    <div id="main-app" class="hidden fade-in">
-        <div class="srv-side">
-            <div class="srv-icon" style="background:var(--blurple); border-radius:15px;">D</div>
-            <div style="width:32px; height:2px; background:#35363c; margin-bottom:10px;"></div>
-            <div id="guild-list"></div>
+    <div class="srv-col">
+        <div class="icon" style="background: var(--blurple); border-radius: 15px;">D</div>
+        <div style="width: 32px; height: 2px; background: #35363c; margin-bottom: 8px;"></div>
+    </div>
+
+    <div class="dm-col">
+        <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid #1f2023;">Direct Messages</div>
+        <div style="flex: 1; padding-top: 10px;">
+            <div class="channel-item" onclick="alert('Command Mode: Enabled')"># Create Commands</div>
         </div>
-        <div class="dm-side">
-            <div style="padding:15px; font-weight:bold; border-bottom:1px solid #1f2023;">Direct Messages</div>
-            <div class="user-footer" id="profile-area"></div>
-        </div>
-        <div class="chat-main">
-            <img src="https://discord.com/assets/679a9575f0a8c201d41d.svg" width="250">
-            <h1>Ready for Action</h1>
-            <p style="color:#b5bac1">You are now bridged to the Discord Gateway.</p>
+        <div class="user-tag" id="user-display"></div>
+    </div>
+
+    <div class="chat-col">
+        <div id="messages"></div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="msgBox" placeholder="Send a message..." onkeydown="handleInput(event)">
         </div>
     </div>
 
     <script>
-        /* --- ALL JS (THE LOGIC) --- */
-        function handleLogin() {
-            const token = document.getElementById('tkInput').value;
-            if(!token) return alert("Please enter a token!");
-            
-            document.getElementById('load-msg').classList.remove('hidden');
-            
-            // Start WebSocket Bridge
+        let TOKEN = "";
+        let SELECTED_CHANNEL = ""; // You need to put a Channel ID here to see it on Discord
+
+        async function initBot() {
+            TOKEN = document.getElementById('tokenInp').value;
             const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
-            
+
             ws.onmessage = (e) => {
-                const msg = JSON.parse(e.data);
-                
-                // Op 10 = Hello (Tell Discord who we are)
-                if (msg.op === 10) {
-                    ws.send(JSON.stringify({
-                        op: 2,
-                        d: {
-                            token: token,
-                            properties: { os: "linux", browser: "chrome", device: "" },
-                            intents: 1
-                        }
-                    }));
+                const data = JSON.parse(e.data);
+                if (data.op === 10) {
+                    ws.send(JSON.stringify({ op: 2, d: { token: TOKEN, properties: { os: "linux" }, intents: 33281 } }));
                 }
-
-                // Ready = We are in!
-                if (msg.t === "READY") {
-                    document.getElementById('login-page').classList.add('hidden');
-                    document.getElementById('main-app').classList.remove('hidden');
-                    showUser(msg.d);
+                if (data.t === "READY") {
+                    document.getElementById('login-overlay').classList.add('hidden');
+                    loadProfile(data.d.user);
                 }
-            };
-
-            ws.onerror = () => {
-                alert("Login Failed. If on mobile, visit 'cors-anywhere.herokuapp.com/corsdemo' first!");
+                if (data.t === "MESSAGE_CREATE") {
+                    addMessage(data.d.author.username, data.d.content);
+                }
             };
         }
 
-        function showUser(data) {
-            const user = data.user;
-            const profile = document.getElementById('profile-area');
+        function loadProfile(user) {
+            const display = document.getElementById('user-display');
+            const pfp = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/0.png`;
+            let badge = (user.username === "Admin") ? '<span class="badge">ADMIN</span>' : '';
+            display.innerHTML = `<img src="${pfp}" width="32" style="border-radius:50%"> <div><strong>${user.username}</strong>${badge}</div>`;
+        }
+
+        function addMessage(user, text) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = "msg";
+            div.innerHTML = `<strong>${user}:</strong> ${text}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function handleInput(e) {
+            if (e.key === 'Enter') {
+                const text = e.target.value;
+                if (text.startsWith('/createcommand')) {
+                    createSlashCommand();
+                } else {
+                    // Send to Discord
+                    await fetch(`https://discord.com/api/v10/channels/${SELECTED_CHANNEL}/messages`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bot ${TOKEN}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: text })
+                    });
+                }
+                e.target.value = "";
+            }
+        }
+
+        async function createSlashCommand() {
+            const cmdName = prompt("Enter command name (e.g., hello):");
+            const appId = prompt("Enter your Bot Application ID:");
             
-            // Image fix
-            const pfp = user.avatar 
-                ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-                : `https://cdn.discordapp.com/embed/avatars/0.png`;
-
-            // Admin Logic
-            let badge = (user.username === "Admin") ? '<span class="admin-badge">ADMIN</span>' : '';
-
-            profile.innerHTML = `
-                <img src="${pfp}" class="avatar">
-                <div>
-                    <div style="font-weight:bold; font-size:13px;">${user.username}${badge}</div>
-                    <div style="color:#b5bac1; font-size:11px;">Online</div>
-                </div>
-            `;
+            const res = await fetch(`https://discord.com/api/v10/applications/${appId}/commands`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bot ${TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: cmdName,
+                    description: "Created via Admin Client",
+                    type: 1
+                })
+            });
+            if (res.ok) alert("Command Created! It will appear in Discord soon.");
         }
     </script>
 </body>
