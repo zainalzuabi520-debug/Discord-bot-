@@ -3,34 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Bot Client</title>
+    <title>Discord Web Client</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="login-container" class="box">
-        <img src="https://assets-global.website-files.com/6257adef93867a3f588a4c92/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" width="70">
-        
-        <div id="login-form">
-            <h2>Welcome back!</h2>
-            <p class="subtitle">Log in with your bot token</p>
-            <div class="input-group">
-                <label>TOKEN</label>
-                <input type="password" id="tokenInput">
+    <div id="login-container" class="login-wrapper">
+        <div class="login-box fade-in">
+            <img src="https://assets-global.website-files.com/6257adef93867a3f588a4c92/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" width="80">
+            <div id="login-content">
+                <h2>Welcome back!</h2>
+                <p class="subtitle">Log in with your token to sync with Discord.</p>
+                <div class="input-group">
+                    <label>TOKEN</label>
+                    <input type="password" id="tokenInput" spellcheck="false">
+                </div>
+                <button onclick="startCountdown()">Log In</button>
             </div>
-            <button onclick="startCountdown()">Log In</button>
-        </div>
-
-        <div id="countdown-area" class="hidden">
-            <h1 id="timer">3</h1>
-            <p>Connecting to Discord Gateway...</p>
+            <div id="countdown-area" class="hidden">
+                <div class="spinner"></div>
+                <h1 id="timer">3</h1>
+                <p>Establishing Secure Bridge...</p>
+            </div>
         </div>
     </div>
 
     <div id="main-client" class="hidden">
-        <div id="user-profile"></div>
-        <div class="chat-placeholder">
-            <p>Connected to Discord API via GitHub Pages</p>
+        
+        <div class="sidebar-servers">
+            <div class="nav-item home-btn active">
+                <img src="https://assets-global.website-files.com/6257adef93867a3f588a4c92/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" width="28">
+            </div>
+            <div class="nav-separator"></div>
+            <div id="server-icons-list"></div>
+        </div>
+
+        <div class="sidebar-dms slide-in-left">
+            <div class="dm-search">
+                <button>Find or start a conversation</button>
+            </div>
+            <div class="dm-list">
+                <div class="dm-item active">Friends</div>
+                <div class="dm-item">Nitro</div>
+                <div class="dm-item">Message Requests</div>
+                <div class="dm-header">DIRECT MESSAGES</div>
+                <div id="dm-list-content"></div>
+            </div>
+            <div class="user-panel" id="user-profile">
+                </div>
+        </div>
+
+        <div class="main-content slide-in-bottom">
+            <div class="top-nav">
+                <div class="nav-title">Friends</div>
+                <div class="nav-links">
+                    <span class="active">Online</span>
+                    <span>All</span>
+                    <span>Pending</span>
+                    <span>Blocked</span>
+                    <button class="add-friend">Add Friend</button>
+                </div>
+            </div>
+            <div class="friends-list-container">
+                <div class="empty-state">
+                    <img src="https://discord.com/assets/679a9575f0a8c201d41d.svg" width="400">
+                    <p>No one's around to play with Wumpus.</p>
+                </div>
+            </div>
         </div>
     </div>
 
