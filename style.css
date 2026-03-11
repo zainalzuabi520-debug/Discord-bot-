@@ -1,38 +1,21 @@
-:root {
-    --bg-main: #313338;
-    --bg-sidebar: #2b2d31;
-    --bg-servers: #1e1f22;
-    --blurple: #5865f2;
+/* Add this to your style.css */
+.slide-in-top {
+    animation: slideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-body { margin: 0; background: #313338; color: white; font-family: sans-serif; overflow: hidden; height: 100vh; }
-.hidden { display: none !important; }
+@keyframes slideDown {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
 
-/* --- ANIMATIONS --- */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes slideRight { from { transform: translateX(-100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-
-.fade-in { animation: fadeIn 0.8s ease; }
-.slide-in-bottom { animation: slideUp 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
-.slide-in-left { animation: slideRight 0.5s ease forwards; }
-.slide-in-left-delayed { animation: slideRight 0.7s ease forwards; }
-.logo-bounce { animation: bounce 2s infinite ease-in-out; }
-.pulse { animation: pulse 1s infinite; }
-
-/* --- UI ELEMENTS --- */
-.login-wrapper { height: 100vh; display: flex; align-items: center; justify-content: center; background: #5865f2; }
-.login-box { background: #313338; padding: 40px; border-radius: 8px; width: 400px; text-align: center; }
-
-#main-client { display: flex; height: 100vh; }
-.sidebar-servers { width: 72px; background: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; }
-.sidebar-dms { width: 240px; background: var(--bg-sidebar); display: flex; flex-direction: column; }
-.main-content { flex: 1; background: var(--bg-main); display: flex; flex-direction: column; }
-
-.nav-item { width: 48px; height: 48px; border-radius: 50%; background: #313338; margin-bottom: 8px; transition: 0.3s; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.nav-item:hover { border-radius: 15px; background: var(--blurple); }
-
-.user-panel { margin-top: auto; background: #232428; padding: 8px; display: flex; align-items: center; gap: 10px; }
-.admin-badge { background: #ed4245; padding: 2px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+/* Image Fix: Ensure pfps are circular and don't stretch */
+#user-profile img {
+    object-fit: cover;
+    border: 2px solid #232428;
+}
