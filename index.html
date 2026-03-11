@@ -1,12 +1,129 @@
-<link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    </head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Admin Client</title>
+    <style>
+        /* --- ALL CSS (THE DESIGN) --- */
+        :root { --bg: #313338; --sidebar: #2b2d31; --servers: #1e1f22; --blurple: #5865f2; }
+        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; overflow: hidden; height: 100vh; }
+        .hidden { display: none !important; }
+        
+        /* Animations */
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 0.5s ease; }
+        .slide-in { animation: slideIn 0.5s ease-out; }
 
-<div id="login-container" class="login-wrapper">
-    <div class="login-box slide-in-top">
-        <img src="https://raw.githubusercontent.com/pignataro/discord-logo-svg/master/discord-logo-blue.svg" width="80" class="logo-bounce">
+        /* Login Layout */
+        .login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--blurple); }
+        .login-box { background: var(--bg); padding: 40px; border-radius: 8px; width: 400px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        input { width: 100%; padding: 12px; background: #1e1f22; border: 1px solid #111214; border-radius: 4px; color: white; margin: 15px 0; outline: none; }
+        button { width: 100%; padding: 12px; background: var(--blurple); border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #4752c4; }
+
+        /* App Layout */
+        #main-app { display: flex; height: 100vh; }
+        .srv-side { width: 72px; background: var(--servers); display: flex; flex-direction: column; align-items: center; padding-top: 15px; }
+        .srv-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--bg); margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .dm-side { width: 240px; background: var(--sidebar); display: flex; flex-direction: column; }
+        .chat-main { flex: 1; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        
+        .user-footer { margin-top: auto; background: #232428; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .admin-badge { background: #ed4245; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; background: #5865f2; }
+    </style>
+</head>
+<body>
+
+    <div id="login-page" class="login-screen">
+        <div class="login-box slide-in">
+            <img src="https://raw.githubusercontent.com/pignataro/discord-logo-svg/master/discord-logo-blue.svg" width="80">
+            <h2>Welcome back!</h2>
+            <p style="color:#b5bac1">Log in with your Bot Token</p>
+            <input type="password" id="tkInput" placeholder="Enter Token">
+            <button onclick="handleLogin()">Log In</button>
+            <div id="load-msg" class="hidden" style="margin-top:15px;">Connecting to Discord...</div>
         </div>
-</div>
+    </div>
+
+    <div id="main-app" class="hidden fade-in">
+        <div class="srv-side">
+            <div class="srv-icon" style="background:var(--blurple); border-radius:15px;">D</div>
+            <div style="width:32px; height:2px; background:#35363c; margin-bottom:10px;"></div>
+            <div id="guild-list"></div>
+        </div>
+        <div class="dm-side">
+            <div style="padding:15px; font-weight:bold; border-bottom:1px solid #1f2023;">Direct Messages</div>
+            <div class="user-footer" id="profile-area"></div>
+        </div>
+        <div class="chat-main">
+            <img src="https://discord.com/assets/679a9575f0a8c201d41d.svg" width="250">
+            <h1>Ready for Action</h1>
+            <p style="color:#b5bac1">You are now bridged to the Discord Gateway.</p>
+        </div>
+    </div>
+
+    <script>
+        /* --- ALL JS (THE LOGIC) --- */
+        function handleLogin() {
+            const token = document.getElementById('tkInput').value;
+            if(!token) return alert("Please enter a token!");
+            
+            document.getElementById('load-msg').classList.remove('hidden');
+            
+            // Start WebSocket Bridge
+            const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+            
+            ws.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                
+                // Op 10 = Hello (Tell Discord who we are)
+                if (msg.op === 10) {
+                    ws.send(JSON.stringify({
+                        op: 2,
+                        d: {
+                            token: token,
+                            properties: { os: "linux", browser: "chrome", device: "" },
+                            intents: 1
+                        }
+                    }));
+                }
+
+                // Ready = We are in!
+                if (msg.t === "READY") {
+                    document.getElementById('login-page').classList.add('hidden');
+                    document.getElementById('main-app').classList.remove('hidden');
+                    showUser(msg.d);
+                }
+            };
+
+            ws.onerror = () => {
+                alert("Login Failed. If on mobile, visit 'cors-anywhere.herokuapp.com/corsdemo' first!");
+            };
+        }
+
+        function showUser(data) {
+            const user = data.user;
+            const profile = document.getElementById('profile-area');
+            
+            // Image fix
+            const pfp = user.avatar 
+                ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                : `https://cdn.discordapp.com/embed/avatars/0.png`;
+
+            // Admin Logic
+            let badge = (user.username === "Admin") ? '<span class="admin-badge">ADMIN</span>' : '';
+
+            profile.innerHTML = `
+                <img src="${pfp}" class="avatar">
+                <div>
+                    <div style="font-weight:bold; font-size:13px;">${user.username}${badge}</div>
+                    <div style="color:#b5bac1; font-size:11px;">Online</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
