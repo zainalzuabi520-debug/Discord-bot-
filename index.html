@@ -3,142 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Admin Client</title>
+    <title>Discord Admin Pro</title>
     <style>
         :root { --bg: #313338; --side: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
 
-        /* Sidebar & Layout */
+        /* Layout */
         .srv-col { width: 72px; background: var(--dark); display: flex; flex-direction: column; align-items: center; padding-top: 12px; }
         .dm-col { width: 240px; background: var(--side); display: flex; flex-direction: column; }
         .chat-col { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
         
-        /* Icons & Items */
+        /* UI Elements */
         .icon { width: 48px; height: 48px; border-radius: 50%; background: #313338; margin-bottom: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .icon:hover { border-radius: 15px; background: var(--blurple); }
-        .channel-item { padding: 8px 12px; margin: 2px 8px; border-radius: 4px; cursor: pointer; }
-        .channel-item:hover { background: #35373c; }
+        .item { padding: 10px; margin: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .item:hover { background: #35373c; }
 
-        /* Login Overlay */
-        #login-overlay { position: fixed; inset: 0; background: var(--blurple); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .login-box { background: var(--bg); padding: 40px; border-radius: 8px; width: 400px; text-align: center; animation: slideUp 0.5s ease; }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        input { width: 100%; padding: 12px; background: var(--dark); border: none; border-radius: 4px; color: white; margin: 15px 0; outline: none; }
+        /* Login Screen */
+        #login-screen { position: fixed; inset: 0; background: var(--blurple); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--bg); padding: 40px; border-radius: 8px; width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        input { width: 100%; padding: 12px; background: var(--dark); border: none; border-radius: 4px; color: white; margin: 15px 0; outline: none; box-sizing: border-box;}
         button { width: 100%; padding: 12px; background: var(--blurple); border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; }
 
-        /* Chat */
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { background: #383a40; padding: 10px; border-radius: 8px; max-width: 80%; }
-        .chat-input-area { padding: 20px; }
-        .chat-input { width: 100%; padding: 12px; background: #383a40; border-radius: 8px; border: none; color: white; outline: none; }
+        /* Chat System */
+        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg { background: #383a40; padding: 10px; border-radius: 8px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .input-area { padding: 20px; background: var(--bg); }
+        .main-input { width: 100%; padding: 14px; background: #383a40; border-radius: 8px; border: none; color: white; outline: none; }
         
-        .user-tag { background: var(--dark); padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #232428; }
-        .badge { background: #ed4245; font-size: 10px; padding: 2px 4px; border-radius: 3px; font-weight: bold; }
+        .footer { background: #232428; padding: 10px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .badge { background: #ed4245; font-size: 9px; padding: 2px 4px; border-radius: 3px; font-weight: bold; margin-left: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="login-overlay">
+    <div id="login-screen">
         <div class="login-box">
-            <h2>Welcome back!</h2>
-            <input type="password" id="tokenInp" placeholder="Enter Bot Token">
-            <button onclick="initBot()">Log In</button>
+            <h2 style="margin-top:0">Bridge Connection</h2>
+            <p style="color: #b5bac1; font-size: 14px;">Enter your Bot Token to sync with Discord.</p>
+            <input type="password" id="tokenField" placeholder="Bot Token">
+            <button onclick="startBridge()">Connect Now</button>
+            <p id="debug-log" style="font-size: 11px; margin-top: 15px; color: #f2d458;"></p>
         </div>
     </div>
 
     <div class="srv-col">
         <div class="icon" style="background: var(--blurple); border-radius: 15px;">D</div>
-        <div style="width: 32px; height: 2px; background: #35363c; margin-bottom: 8px;"></div>
     </div>
 
     <div class="dm-col">
         <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid #1f2023;">Direct Messages</div>
         <div style="flex: 1; padding-top: 10px;">
-            <div class="channel-item" onclick="alert('Command Mode: Enabled')"># Create Commands</div>
+            <div class="item" onclick="createNewCommand()">➕ Create Command</div>
         </div>
-        <div class="user-tag" id="user-display"></div>
+        <div class="footer" id="user-info"></div>
     </div>
 
     <div class="chat-col">
-        <div id="messages"></div>
-        <div class="chat-input-area">
-            <input type="text" class="chat-input" id="msgBox" placeholder="Send a message..." onkeydown="handleInput(event)">
+        <div id="chat"></div>
+        <div class="input-area">
+            <input type="text" class="main-input" id="messageInp" placeholder="Type a message or command..." onkeydown="handleKey(event)">
         </div>
     </div>
 
     <script>
         let TOKEN = "";
-        let SELECTED_CHANNEL = ""; // You need to put a Channel ID here to see it on Discord
+        let botID = "";
 
-        async function initBot() {
-            TOKEN = document.getElementById('tokenInp').value;
-            const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+        function log(msg) { document.getElementById('debug-log').innerText = msg; }
 
-            ws.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                if (data.op === 10) {
-                    ws.send(JSON.stringify({ op: 2, d: { token: TOKEN, properties: { os: "linux" }, intents: 33281 } }));
-                }
-                if (data.t === "READY") {
-                    document.getElementById('login-overlay').classList.add('hidden');
-                    loadProfile(data.d.user);
-                }
-                if (data.t === "MESSAGE_CREATE") {
-                    addMessage(data.d.author.username, data.d.content);
-                }
-            };
-        }
-
-        function loadProfile(user) {
-            const display = document.getElementById('user-display');
-            const pfp = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/0.png`;
-            let badge = (user.username === "Admin") ? '<span class="badge">ADMIN</span>' : '';
-            display.innerHTML = `<img src="${pfp}" width="32" style="border-radius:50%"> <div><strong>${user.username}</strong>${badge}</div>`;
-        }
-
-        function addMessage(user, text) {
-            const container = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = "msg";
-            div.innerHTML = `<strong>${user}:</strong> ${text}`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function handleInput(e) {
-            if (e.key === 'Enter') {
-                const text = e.target.value;
-                if (text.startsWith('/createcommand')) {
-                    createSlashCommand();
-                } else {
-                    // Send to Discord
-                    await fetch(`https://discord.com/api/v10/channels/${SELECTED_CHANNEL}/messages`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bot ${TOKEN}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: text })
-                    });
-                }
-                e.target.value = "";
-            }
-        }
-
-        async function createSlashCommand() {
-            const cmdName = prompt("Enter command name (e.g., hello):");
-            const appId = prompt("Enter your Bot Application ID:");
+        async function startBridge() {
+            TOKEN = document.getElementById('tokenField').value;
+            if(!TOKEN) return alert("Enter a token!");
             
-            const res = await fetch(`https://discord.com/api/v10/applications/${appId}/commands`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bot ${TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: cmdName,
-                    description: "Created via Admin Client",
-                    type: 1
-                })
-            });
-            if (res.ok) alert("Command Created! It will appear in Discord soon.");
-        }
-    </script>
-</body>
-</html>
+            log("Opening WebSocket...");
+            const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
